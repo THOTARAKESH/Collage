@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 
 import com.imran.collage.views.CollageView;
 
@@ -39,6 +40,8 @@ public class ImagePickerFragment extends DialogFragment {
             if (requestCode == 100) {
                 mCollageView.setBitmap(getBitmapFromCameraData(data));
             }
+        } else {
+            dismiss();
         }
     }
 
