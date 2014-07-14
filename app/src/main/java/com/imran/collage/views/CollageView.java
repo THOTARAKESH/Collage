@@ -6,7 +6,6 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -57,7 +56,6 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
                 count++;
             }
         }
-
     }
 
     @Override
@@ -219,7 +217,6 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             this.top = (rowPosition * height);
             right = width * (columnPosition + 1);
             bottom = height * (rowPosition + 1);
-            frameView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
             frameView.layout(left, top, right, bottom);
             frameView.setOnDragListener(CollageView.this);
             imageView.layout(0, 0, width, height);
