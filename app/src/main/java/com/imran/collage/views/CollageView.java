@@ -1,8 +1,12 @@
 package com.imran.collage.views;
 
+import android.content.ClipData;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.DragEvent;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -12,10 +16,12 @@ import com.imran.collage.R;
 /**
  * Created by imran on 14/07/14.
  */
-public class CollageView extends ViewGroup {
+public class CollageView extends ViewGroup implements View.OnClickListener, View.OnLongClickListener, View.OnDragListener {
 
+    private final int MIN_DRAG_DISTANCE = 25;
     int mViewWidth, mViewHeight;
     ImageContainer[] mImageContainers = new ImageContainer[5];
+
 
     public CollageView(Context context) {
         this(context, null);
@@ -69,6 +75,99 @@ public class CollageView extends ViewGroup {
                 MeasureSpec.getSize(mViewHeight));
     }
 
+    @Override
+    public boolean onDrag(View view, DragEvent dragEvent) {
+        int action = dragEvent.getAction();
+        switch (action) {
+            case DragEvent.ACTION_DRAG_STARTED:
+                break;
+            case DragEvent.ACTION_DRAG_ENTERED:
+                view.setAlpha((float) 0.7);
+                break;
+            case DragEvent.ACTION_DRAG_EXITED:
+                view.setAlpha((float) 1.0);
+                break;
+            case DragEvent.ACTION_DROP:
+                View v = (View) dragEvent.getLocalState();
+                ViewGroup owner = (ViewGroup) v.getParent();
+                owner.removeView(v);
+                FrameLayout container = (FrameLayout) view;
+
+                View im = ((FrameLayout) view).getChildAt(0);
+                ((FrameLayout) view).removeView(im);
+                if (im != null) {
+                    im.layout(0, 0, owner.getWidth(), owner.getHeight());
+                    im.setLayoutParams(owner.getLayoutParams());
+                    Log.d("Tag", im.getLeft() + " " + im.getBottom());
+                    owner.addView(im);
+                }
+                v.layout(0, 0, container.getWidth(), container.getHeight());
+                v.setLayoutParams(container.getLayoutParams());
+                container.addView(v);
+                v.setVisibility(View.VISIBLE);
+                break;
+            case DragEvent.ACTION_DRAG_ENDED:
+                view.setAlpha((float) 1.0);
+            default:
+                break;
+        }
+        return true;
+    }
+
+
+    @Override
+    public void onClick(View view) {
+
+    }
+
+    @Override
+    public boolean onLongClick(View view) {
+        ClipData data = ClipData.newPlainText("", "");
+        DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
+        view.startDrag(data, shadowBuilder, view, 0);
+        view.setVisibility(View.INVISIBLE);
+        return false;
+    }
+
+    /*
+    Replacing OnClick and OnLongClick in place of OnTouch.
+    Precise calculations are needed to achieve onTouch and Drag.
+     */
+
+ /*
+     float eventX, eventY;
+
+  @Override
+    public boolean onTouch(View view, MotionEvent motionEvent) {
+        int action = motionEvent.getAction();
+
+        switch (action) {
+            case MotionEvent.ACTION_DOWN:
+                eventX = motionEvent.getX();
+                eventY = motionEvent.getY();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float x = motionEvent.getX();
+                float y = motionEvent.getY();
+                float x1 = eventX + x;
+                float y1 = eventY + y;
+                double res = Math.sqrt(((int)x1^2) + ((int)y1^2));
+                if(res > MIN_DRAG_DISTANCE){
+                    ClipData data = ClipData.newPlainText("", "");
+                    DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
+                    view.startDrag(data, shadowBuilder, view, 0);
+                    view.setVisibility(View.INVISIBLE);
+                } else {
+                    return false;
+                }
+                break;
+            case MotionEvent.ACTION_UP:
+                break;
+        }
+
+        return true;
+    }
+*/
 
     public class ImageContainer {
 
@@ -108,8 +207,12 @@ public class CollageView extends ViewGroup {
             bottom = height * (rowPosition + 1);
             frameView.setLayoutParams(new FrameLayout.LayoutParams(width, height));
             frameView.layout(left, top, right, bottom);
+            frameView.setOnDragListener(CollageView.this);
             imageView.setImageResource(R.drawable.ic_add);
             imageView.layout(0, 0, width, height);
+            imageView.setOnClickListener(CollageView.this);
+            imageView.setOnLongClickListener(CollageView.this);
         }
+
     }
 }
