@@ -18,6 +18,7 @@
 # Generated files
 bin/
 gen/
+*.iml
 
 # Gradle files
 .gradle/
