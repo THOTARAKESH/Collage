@@ -7,7 +7,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.widget.Toast;
 
 import com.imran.collage.views.CollageView;
 
@@ -38,19 +38,20 @@ public class ImagePickerFragment extends DialogFragment {
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == 100) {
-                mCollageView.setBitmap(getBitmapFromCameraData(data));
+                mCollageView.setBitmap(getBitmap(data));
             }
         } else {
             dismiss();
         }
     }
 
-    public Bitmap getBitmapFromCameraData(Intent data) {
+    public Bitmap getBitmap(Intent data) {
         Uri selectedImage = data.getData();
         try {
             return MediaStore.Images.Media.getBitmap(
                     getActivity().getContentResolver(), selectedImage);
         } catch (IOException e) {
+            Toast.makeText(getActivity(), "Image not found", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
         return null;
