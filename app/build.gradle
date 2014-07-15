@@ -8,7 +8,7 @@ buildscript {
     }
 }
 apply plugin: 'com.android.application'
-/*apply plugin: 'crashlytics'*/
+apply plugin: 'crashlytics'
 
 repositories {
     maven { url 'http://download.crashlytics.com/maven' }
