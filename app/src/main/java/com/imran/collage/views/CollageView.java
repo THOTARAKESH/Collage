@@ -30,6 +30,7 @@ import java.io.IOException;
  */
 public class CollageView extends ViewGroup implements View.OnClickListener, View.OnLongClickListener, View.OnDragListener {
 
+    private final int IMAGE_MAX_SIZE = 1000;
     private final String FRAGMENT_TAG = "gallery_fragment";
     private final int MIN_DRAG_DISTANCE = 25;
     private final int NUM_COLUMNS = 2;
@@ -198,7 +199,13 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             options.inJustDecodeBounds = true;
             BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
 
-            options.inSampleSize = calculateInSampleSize(options, mSelectedImageView.getWidth(), mSelectedImageView.getHeight());
+            int scale = 1;
+            if (options.outHeight > IMAGE_MAX_SIZE || options.outWidth > IMAGE_MAX_SIZE) {
+                scale = (int)Math.pow(2, (int) Math.ceil(Math.log(IMAGE_MAX_SIZE /
+                        (double) Math.max(options.outHeight, options.outWidth)) / Math.log(0.5)));
+            }
+
+            options.inSampleSize = scale;
             options.inJustDecodeBounds = false;
 
             return BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
@@ -207,39 +214,6 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             e.printStackTrace();
         }
         return null;
-    }
-
-    /**
-     * Load large bitmap efficiently.
-     * <p/>
-     * http://developer.android.com/training/displaying-bitmaps/load-bitmap.html#load-bitmap
-     *
-     * @param options
-     * @param reqWidth
-     * @param reqHeight
-     * @return
-     */
-    public static int calculateInSampleSize(
-            BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-
-        if (height > reqHeight || width > reqWidth) {
-
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-
-        return inSampleSize;
     }
 
     /**
