@@ -3,9 +3,12 @@ package com.imran.collage.views;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.DragEvent;
@@ -15,9 +18,12 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.imran.collage.ImagePickerFragment;
 import com.imran.collage.R;
+
+import java.io.IOException;
 
 /**
  * Created by imran on 14/07/14.
@@ -145,7 +151,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
                 dest.addView(v);
                 v.setVisibility(View.VISIBLE);
 
-                if(im != null) {
+                if (im != null) {
                     Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.anim);
                     // Disable animation temp
                     //im.startAnimation(animation);
@@ -179,10 +185,61 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     /**
      * @param bitmap
      */
-    public void setBitmap(Bitmap bitmap) {
+    public void setBitmap(Uri imageUri) {
         mImagePickerFragment.dismiss();
-        mSelectedImageView.setImageBitmap(bitmap);
+        mSelectedImageView.setImageBitmap(getBitmap(imageUri));
         mSelectedImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+    }
+
+    public Bitmap getBitmap(Uri imageUri) {
+        try {
+            AssetFileDescriptor fileDescriptor = getContext().getContentResolver().openAssetFileDescriptor(imageUri, "r");
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+
+            options.inSampleSize = calculateInSampleSize(options, mSelectedImageView.getWidth(), mSelectedImageView.getHeight());
+            options.inJustDecodeBounds = false;
+
+            return BitmapFactory.decodeFileDescriptor(fileDescriptor.getFileDescriptor(), null, options);
+        } catch (IOException e) {
+            Toast.makeText(getContext(), "Image not found", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /**
+     * Load large bitmap efficiently.
+     * <p/>
+     * http://developer.android.com/training/displaying-bitmaps/load-bitmap.html#load-bitmap
+     *
+     * @param options
+     * @param reqWidth
+     * @param reqHeight
+     * @return
+     */
+    public static int calculateInSampleSize(
+            BitmapFactory.Options options, int reqWidth, int reqHeight) {
+        // Raw height and width of image
+        final int height = options.outHeight;
+        final int width = options.outWidth;
+        int inSampleSize = 1;
+
+        if (height > reqHeight || width > reqWidth) {
+
+            final int halfHeight = height / 2;
+            final int halfWidth = width / 2;
+
+            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
+            // height and width larger than the requested height and width.
+            while ((halfHeight / inSampleSize) > reqHeight
+                    && (halfWidth / inSampleSize) > reqWidth) {
+                inSampleSize *= 2;
+            }
+        }
+
+        return inSampleSize;
     }
 
     /**
