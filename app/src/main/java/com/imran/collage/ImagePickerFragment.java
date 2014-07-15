@@ -18,6 +18,7 @@ import java.io.IOException;
  */
 public class ImagePickerFragment extends DialogFragment {
 
+    private final int GALLERY_REQUEST_CODE = 11011;
     CollageView mCollageView;
 
     public static ImagePickerFragment getInstance(CollageView view) {
@@ -31,13 +32,13 @@ public class ImagePickerFragment extends DialogFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, 100);
+        startActivityForResult(intent, GALLERY_REQUEST_CODE);
     }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == 100) {
+            if (requestCode == GALLERY_REQUEST_CODE) {
                 mCollageView.setBitmap(getBitmap(data));
             }
         } else {

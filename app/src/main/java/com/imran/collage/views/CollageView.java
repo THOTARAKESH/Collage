@@ -24,6 +24,7 @@ import com.imran.collage.R;
  */
 public class CollageView extends ViewGroup implements View.OnClickListener, View.OnLongClickListener, View.OnDragListener {
 
+    private final String FRAGMENT_TAG = "gallery_fragment";
     private final int MIN_DRAG_DISTANCE = 25;
     private final int NUM_COLUMNS = 2;
     private final int NUM_ROWS = 3;
@@ -170,7 +171,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
         mSelectedImageView = (ImageView) view;
         if (getContext() instanceof Activity) {
             if (!mImagePickerFragment.isAdded()) {
-                mImagePickerFragment.show(((Activity) getContext()).getFragmentManager(), "dialog");
+                mImagePickerFragment.show(((Activity) getContext()).getFragmentManager(), FRAGMENT_TAG);
             }
         }
     }
