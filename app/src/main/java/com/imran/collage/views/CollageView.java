@@ -282,7 +282,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             right = (width * (columnPosition + 1));
             bottom = (height * (rowPosition + 1));
 
-            frameView.setBackgroundColor(Color.RED);
+            //frameView.setBackgroundColor(Color.RED);
             frameView.layout(left, top, right, bottom);
             frameView.setOnDragListener(CollageView.this);
             imageView.layout(0, 0, right - left, bottom - top);
