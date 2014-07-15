@@ -8,10 +8,11 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.DragEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 
@@ -50,7 +51,10 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
         init();
     }
 
-
+    /**
+     * Measure screen sizes
+     * Initialize objects
+     */
     void init() {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         mViewWidth = metrics.widthPixels;
@@ -69,6 +73,15 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
         }
     }
 
+    /**
+     * Layout Views to be drawn at particular positions.
+     *
+     * @param changed
+     * @param l
+     * @param t
+     * @param r
+     * @param b
+     */
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
 
@@ -88,6 +101,15 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
                 MeasureSpec.getSize(mViewHeight));
     }
 
+    /**
+     * Override Drag Event.
+     * Alpha of the image is changed while dragging.
+     * Switch images on drag finished.
+     *
+     * @param view
+     * @param dragEvent
+     * @return
+     */
     @Override
     public boolean onDrag(View view, DragEvent dragEvent) {
         int action = dragEvent.getAction();
@@ -101,26 +123,36 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
                 view.setAlpha((float) 1.0);
                 break;
             case DragEvent.ACTION_DROP:
-                View v = (View) dragEvent.getLocalState();
-                ViewGroup owner = (ViewGroup) v.getParent();
-                owner.removeView(v);
-                FrameLayout container = (FrameLayout) view;
+                final View v = (View) dragEvent.getLocalState();
+                ViewGroup src = (ViewGroup) v.getParent();
+                src.removeView(v);
 
-                View im = container.getChildAt(0);
-                container.removeView(im);
+                final FrameLayout dest = (FrameLayout) view;
 
-                ImageContainer iC = (ImageContainer) owner.getTag();
-                iC.imageView = (ImageView) im;
-                owner.addView(im);
+                View im = dest.getChildAt(0);
+                if (im != null) {
+                    dest.removeView(im);
 
+                    ImageContainer iC = (ImageContainer) src.getTag();
+                    iC.imageView = (ImageView) im;
+                    src.addView(im);
 
-                ImageContainer iC1 = (ImageContainer) container.getTag();
+                }
+                ImageContainer iC1 = (ImageContainer) dest.getTag();
                 iC1.imageView = (ImageView) v;
-                container.addView(v);
+
+                dest.addView(v);
                 v.setVisibility(View.VISIBLE);
+
+                if(im != null) {
+                    Animation animation = AnimationUtils.loadAnimation(getContext(), R.anim.anim);
+                    // Disable animation temp
+                    //im.startAnimation(animation);
+                }
+
                 break;
             case DragEvent.ACTION_DRAG_ENDED:
-                view.setAlpha((float) 1.0);
+                break;
             default:
                 break;
         }
@@ -128,20 +160,36 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     }
 
 
+    /**
+     * Onclick select image from Gallery
+     *
+     * @param view
+     */
     @Override
     public void onClick(View view) {
         mSelectedImageView = (ImageView) view;
         if (getContext() instanceof Activity) {
-            mImagePickerFragment.show(((Activity) getContext()).getFragmentManager(), "dialog");
+            if (!mImagePickerFragment.isAdded()) {
+                mImagePickerFragment.show(((Activity) getContext()).getFragmentManager(), "dialog");
+            }
         }
     }
 
+    /**
+     * @param bitmap
+     */
     public void setBitmap(Bitmap bitmap) {
         mImagePickerFragment.dismiss();
         mSelectedImageView.setImageBitmap(bitmap);
         mSelectedImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
     }
 
+    /**
+     * OnLongClick enable drag
+     *
+     * @param view
+     * @return
+     */
     @Override
     public boolean onLongClick(View view) {
         ClipData data = ClipData.newPlainText("", "");
@@ -211,6 +259,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             imageView = new ImageView(frameView.getContext());
             imageView.setImageResource(R.drawable.ic_add);
             imageView.setBackgroundColor(Color.DKGRAY + position * 100);
+            imageView.setScaleType(ImageView.ScaleType.CENTER);
             frameView.addView(imageView);
         }
 
@@ -222,7 +271,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             height = height / NUM_ROWS;
 
             if (position % NUM_COLUMNS == 0) {
-                this.left = 0;
+                this.left = mColumnSpacing;
             } else {
                 this.left = width + mColumnSpacing;
             }
@@ -235,7 +284,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             frameView.setBackgroundColor(Color.RED);
             frameView.layout(left, top, right, bottom);
             frameView.setOnDragListener(CollageView.this);
-            imageView.layout(0, 0, width, height);
+            imageView.layout(0, 0, right - left, bottom - top);
             imageView.setOnClickListener(CollageView.this);
             imageView.setOnLongClickListener(CollageView.this);
             frameView.setTag(this);
