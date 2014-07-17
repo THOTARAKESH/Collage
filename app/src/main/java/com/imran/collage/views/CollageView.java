@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -40,6 +41,8 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     ImageContainer[] mImageContainers = new ImageContainer[5];
     ImagePickerFragment mImagePickerFragment;
     ImageView mSelectedImageView;
+    ImageContainer mSelectedImageContainer;
+    boolean mPortrait;
 
     int mColumnSpacing = 0, mRowSpacing = 0;
 
@@ -66,7 +69,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     void init() {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
         mViewWidth = metrics.widthPixels;
-        mViewHeight = (int) (metrics.heightPixels * 0.75);
+        mViewHeight = metrics.heightPixels;
         mImagePickerFragment = ImagePickerFragment.getInstance(this);
         int count = 0;
         for (int i = 0; i < NUM_ROWS; i++) {
@@ -96,11 +99,15 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
         int width = r - l;
         int height = b - t;
 
+        int o = getResources().getConfiguration().orientation;
+        mPortrait = o == Configuration.ORIENTATION_PORTRAIT;
+
         for (ImageContainer im : mImageContainers) {
             if (im != null) {
                 im.setLayout(width - (mColumnSpacing * (NUM_COLUMNS - 1)), height - (mRowSpacing * (NUM_ROWS - 1)));
             }
         }
+
     }
 
     @Override
@@ -175,7 +182,8 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
      */
     @Override
     public void onClick(View view) {
-        mSelectedImageView = (ImageView) view;
+        mSelectedImageContainer = (ImageContainer) ((View) view.getParent()).getTag();
+
         if (getContext() instanceof Activity) {
             if (!mImagePickerFragment.isAdded()) {
                 mImagePickerFragment.show(((Activity) getContext()).getFragmentManager(), FRAGMENT_TAG);
@@ -184,12 +192,10 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     }
 
     /**
-     * @param bitmap
      */
     public void setBitmap(Uri imageUri) {
         mImagePickerFragment.dismiss();
-        mSelectedImageView.setImageBitmap(getBitmap(imageUri));
-        mSelectedImageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        mSelectedImageContainer.updateImage(imageUri);
     }
 
     public Bitmap getBitmap(Uri imageUri) {
@@ -201,7 +207,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
 
             int scale = 1;
             if (options.outHeight > IMAGE_MAX_SIZE || options.outWidth > IMAGE_MAX_SIZE) {
-                scale = (int)Math.pow(2, (int) Math.ceil(Math.log(IMAGE_MAX_SIZE /
+                scale = (int) Math.pow(2, (int) Math.ceil(Math.log(IMAGE_MAX_SIZE /
                         (double) Math.max(options.outHeight, options.outWidth)) / Math.log(0.5)));
             }
 
@@ -271,15 +277,20 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     }
 */
 
+    public ImageContainer[] getImageContainers() {
+        return mImageContainers;
+    }
+
     public class ImageContainer {
 
-        int position;
+        public int position;
         int rowPosition, columnPosition;
 
         int left, top, right, bottom;
 
         FrameLayout frameView;
         ImageView imageView;
+        public Uri imageUri;
 
         public ImageContainer(int position, int columnPosition, int rowPosition) {
             this.position = position;
@@ -297,22 +308,30 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
 
         private void setLayout(int width, int height) {
 
-            if (position != 4) {
-                width = width / NUM_COLUMNS;
+            int cHeight = height / NUM_ROWS;
+            int cWidth = width;
+            if (mPortrait) {
+                if (position != 4) {
+                    cWidth = width / NUM_COLUMNS;
+                }
+
+            } else {
+                cWidth = cHeight;
+                if (position % 2 != 0) {
+                    cWidth = width - cHeight;
+                }
             }
-            height = height / NUM_ROWS;
 
             if (position % NUM_COLUMNS == 0) {
                 this.left = mColumnSpacing;
             } else {
-                this.left = width + mColumnSpacing;
+                this.left = cHeight + mColumnSpacing;
             }
 
-            this.top = (rowPosition * height) + mRowSpacing;
+            this.top = (rowPosition * cHeight) + mRowSpacing;
 
-            right = (width * (columnPosition + 1));
-            bottom = (height * (rowPosition + 1));
-
+            right = (cWidth * (columnPosition + 1));
+            bottom = (cHeight * (rowPosition + 1));
             //frameView.setBackgroundColor(Color.RED);
             frameView.layout(left, top, right, bottom);
             frameView.setOnDragListener(CollageView.this);
@@ -320,6 +339,14 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             imageView.setOnClickListener(CollageView.this);
             imageView.setOnLongClickListener(CollageView.this);
             frameView.setTag(this);
+        }
+
+        public void updateImage(Uri imageUri) {
+            if (imageUri != null) {
+                this.imageUri = imageUri;
+                this.imageView.setImageBitmap(getBitmap(imageUri));
+                this.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            }
         }
     }
 }
