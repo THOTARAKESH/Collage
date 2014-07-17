@@ -40,7 +40,6 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     int mViewWidth, mViewHeight;
     ImageContainer[] mImageContainers = new ImageContainer[5];
     ImagePickerFragment mImagePickerFragment;
-    ImageView mSelectedImageView;
     ImageContainer mSelectedImageContainer;
     boolean mPortrait;
 
@@ -191,6 +190,10 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
         }
     }
 
+
+    public ImageContainer getSelectedImageContainer(){
+        return mSelectedImageContainer;
+    }
     /**
      */
     public void setBitmap(Uri imageUri) {
@@ -289,7 +292,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
         int left, top, right, bottom;
 
         FrameLayout frameView;
-        ImageView imageView;
+        public ImageView imageView;
         public Uri imageUri;
 
         public ImageContainer(int position, int columnPosition, int rowPosition) {
