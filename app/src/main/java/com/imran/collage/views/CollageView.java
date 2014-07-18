@@ -348,7 +348,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
             if (imageUri != null) {
                 this.imageUri = imageUri;
                 this.imageView.setImageBitmap(getBitmap(imageUri));
-                this.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                //this.imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
             }
         }
     }

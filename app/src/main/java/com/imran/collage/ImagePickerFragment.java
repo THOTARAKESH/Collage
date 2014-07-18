@@ -67,6 +67,7 @@ public class ImagePickerFragment extends DialogFragment {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == GALLERY_REQUEST_CODE) {
                 mCollageView.setBitmap(getTempUri());
+                getTempFile().delete();
             }
         } else {
             dismiss();
