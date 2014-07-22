@@ -14,14 +14,13 @@ repositories {
     maven { url 'http://download.crashlytics.com/maven' }
 }
 
-
 android {
     compileSdkVersion 20
     buildToolsVersion "20.0.0"
 
     defaultConfig {
         applicationId "com.imran.collage"
-        minSdkVersion 16
+        minSdkVersion 14
         targetSdkVersion 20
         versionCode 1
         versionName "1.0"

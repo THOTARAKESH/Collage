@@ -6,13 +6,9 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 
 import com.imran.collage.views.CollageView;
-
-import java.io.File;
-import java.io.IOException;
 
 /**
  * Created by imran on 15/07/14.
@@ -44,30 +40,16 @@ public class ImagePickerFragment extends DialogFragment {
     }
 
     private Uri getTempUri() {
-        return Uri.fromFile(getTempFile());
+        return Uri.fromFile(Utils.getTempFile("temp.jpg"));
     }
 
-    private File getTempFile() {
-
-        if (Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED)) {
-            File file = new File(Environment.getExternalStorageDirectory(), "temp.jpg");
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return file;
-        }
-        return null;
-    }
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             if (requestCode == GALLERY_REQUEST_CODE) {
                 mCollageView.setBitmap(getTempUri());
-                getTempFile().delete();
+                Utils.getTempFile("temp.jpg").delete();
             }
         } else {
             dismiss();

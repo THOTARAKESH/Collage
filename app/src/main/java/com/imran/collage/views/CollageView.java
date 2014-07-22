@@ -24,6 +24,9 @@ import android.widget.Toast;
 import com.imran.collage.ImagePickerFragment;
 import com.imran.collage.R;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 
 /**
@@ -37,7 +40,6 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     private final int NUM_COLUMNS = 2;
     private final int NUM_ROWS = 3;
 
-    int mViewWidth, mViewHeight;
     ImageContainer[] mImageContainers = new ImageContainer[5];
     ImagePickerFragment mImagePickerFragment;
     ImageContainer mSelectedImageContainer;
@@ -67,8 +69,8 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
      */
     void init() {
         DisplayMetrics metrics = getResources().getDisplayMetrics();
-        mViewWidth = metrics.widthPixels;
-        mViewHeight = metrics.heightPixels;
+        //mViewWidth = ((View) getParent()).getWidth();//metrics.widthPixels;
+        //mViewHeight = ((View) getParent()).getWidth();
         mImagePickerFragment = ImagePickerFragment.getInstance(this);
         int count = 0;
         for (int i = 0; i < NUM_ROWS; i++) {
@@ -111,8 +113,7 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(MeasureSpec.getSize(mViewWidth),
-                MeasureSpec.getSize(mViewHeight));
+        setMeasuredDimension(MeasureSpec.getSize(widthMeasureSpec), MeasureSpec.getSize(heightMeasureSpec));
     }
 
     /**
@@ -191,9 +192,10 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     }
 
 
-    public ImageContainer getSelectedImageContainer(){
+    public ImageContainer getSelectedImageContainer() {
         return mSelectedImageContainer;
     }
+
     /**
      */
     public void setBitmap(Uri imageUri) {
@@ -245,40 +247,57 @@ public class CollageView extends ViewGroup implements View.OnClickListener, View
     Precise calculations are needed to achieve onTouch and Drag.
      */
 
- /*
-     float eventX, eventY;
+    /*
+        float eventX, eventY;
 
-  @Override
-    public boolean onTouch(View view, MotionEvent motionEvent) {
-        int action = motionEvent.getAction();
+     @Override
+       public boolean onTouch(View view, MotionEvent motionEvent) {
+           int action = motionEvent.getAction();
 
-        switch (action) {
-            case MotionEvent.ACTION_DOWN:
-                eventX = motionEvent.getX();
-                eventY = motionEvent.getY();
-                break;
-            case MotionEvent.ACTION_MOVE:
-                float x = motionEvent.getX();
-                float y = motionEvent.getY();
-                float x1 = eventX + x;
-                float y1 = eventY + y;
-                double res = Math.sqrt(((int)x1^2) + ((int)y1^2));
-                if(res > MIN_DRAG_DISTANCE){
-                    ClipData data = ClipData.newPlainText("", "");
-                    DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
-                    view.startDrag(data, shadowBuilder, view, 0);
-                    view.setVisibility(View.INVISIBLE);
-                } else {
-                    return false;
-                }
-                break;
-            case MotionEvent.ACTION_UP:
-                break;
+           switch (action) {
+               case MotionEvent.ACTION_DOWN:
+                   eventX = motionEvent.getX();
+                   eventY = motionEvent.getY();
+                   break;
+               case MotionEvent.ACTION_MOVE:
+                   float x = motionEvent.getX();
+                   float y = motionEvent.getY();
+                   float x1 = eventX + x;
+                   float y1 = eventY + y;
+                   double res = Math.sqrt(((int)x1^2) + ((int)y1^2));
+                   if(res > MIN_DRAG_DISTANCE){
+                       ClipData data = ClipData.newPlainText("", "");
+                       DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(view);
+                       view.startDrag(data, shadowBuilder, view, 0);
+                       view.setVisibility(View.INVISIBLE);
+                   } else {
+                       return false;
+                   }
+                   break;
+               case MotionEvent.ACTION_UP:
+                   break;
+           }
+
+           return true;
+       }
+   */
+    public void saveCollage(File file) {
+        setDrawingCacheEnabled(true);
+        setDrawingCacheQuality(DRAWING_CACHE_QUALITY_HIGH);
+        setDrawingCacheBackgroundColor(Color.TRANSPARENT);
+        Bitmap bitmap = getDrawingCache();
+        try {
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.flush();
+            fos.close();
+            bitmap.recycle();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
-        return true;
     }
-*/
 
     public ImageContainer[] getImageContainers() {
         return mImageContainers;
